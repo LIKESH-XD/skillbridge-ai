@@ -1,3 +1,4 @@
+import { generateCareerPlan } from "./api";
 import React, { useMemo, useState } from "react";
 import "./App.css";
 
@@ -537,30 +538,56 @@ function App() {
     }));
   }
 
-  function handleCreateProfile(event) {
-    event.preventDefault();
+  async function handleCreateProfile(event) {
+  event.preventDefault();
 
-    if (!form.name.trim() || !form.goal.trim()) {
-      alert("Please enter your name and career goal.");
-      return;
-    }
+  if (!form.name.trim() || !form.goal.trim()) {
+    alert("Please enter your name and career goal.");
+    return;
+  }
 
-    const newProfile = {
-      ...form,
-      name: form.name.trim(),
-      goal: form.goal.trim(),
-    };
+  const newProfile = {
+    ...form,
+    name: form.name.trim(),
+    goal: form.goal.trim(),
+  };
+
+  try {
+    const result = await generateCareerPlan(newProfile);
+
+    console.log("AI Backend Response:", result);
 
     setProfile(newProfile);
+
     setMessages([
       {
         sender: "ai",
-        text: `Hi ${newProfile.name}! I am your SkillBridge AI assistant. I can help you plan your journey toward ${newProfile.goal}.`,
+        text: `Hi ${newProfile.name}! Your personalized AI career plan for ${newProfile.goal} has been generated successfully.`,
       },
     ]);
+
     setShowProfileModal(false);
     setActivePage("dashboard");
+  } catch (error) {
+    console.error("AI Backend Error:", error);
+
+    setProfile(newProfile);
+
+    setMessages([
+      {
+        sender: "ai",
+        text: `Hi ${newProfile.name}! Your frontend roadmap for ${newProfile.goal} is ready. Start by following the first step in your roadmap.`,
+      },
+    ]);
+
+    setShowProfileModal(false);
+    setActivePage("dashboard");
+
+    alert(
+      "AI backend could not be reached. The demo roadmap is shown instead. Make sure FastAPI is running."
+    );
   }
+}
 
   function openApp() {
     if (profile) {
